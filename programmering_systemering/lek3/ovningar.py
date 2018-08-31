@@ -81,11 +81,15 @@ for i in range(3):
         print(i**4, " ", end="")
     print()
 
+print("-----------------------------------")
+print("--------HELLO NAME-----------------")
 
-print("Vad är ditt förnamn?", end="")
-name = sys.stdin.readline()
-print("Hej", name)
+# De här raderna buggar med sys.stdin.readline()
+#print("Vad är ditt förnamn?", end="")
+#name = sys.stdin.readline()
+#print("Hej ", name)
 
+# Det här fungerar bättre med input()
 print("Vad är ditt förnamn? ", end="")
 name = input()
 print("Hej {}!".format(name))
