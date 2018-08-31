@@ -1,4 +1,4 @@
-import random
+import randoBlm
 import math
 
 print(random.randrange(0, 100))

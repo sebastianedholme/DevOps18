@@ -1,4 +1,7 @@
 # coding=utf-8
+import os
+import random
+import sys
 
 # Some for loops
 
@@ -44,3 +47,45 @@ while x <= colum:
         print("*", end=" ")
     print()
     y = 0
+
+print("--------TABELL MED WHILE-----------")
+for i in range(3):
+    for i in range(4):
+        print("|", end="")
+        print("*", end="")
+    print("|")
+
+print("---------------BYTA VÄRDEN---------")
+x = 10
+y = 20
+
+z = x
+x = y
+y = z
+
+print(x,y)
+
+print("-------BYTA VÄRDEN ONELINE---------")
+x = 10
+y = 20
+
+x, y = y, x
+
+print(x,y)
+
+print("-----------------------------------")
+print("--------MASTRIS--------------------")
+
+for i in range(3):
+    for j in range(3):
+        print(i**4, " ", end="")
+    print()
+
+
+print("Vad är ditt förnamn?", end="")
+name = sys.stdin.readline()
+print("Hej", name)
+
+print("Vad är ditt förnamn? ", end="")
+name = input()
+print("Hej {}!".format(name))
