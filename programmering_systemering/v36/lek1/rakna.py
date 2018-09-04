@@ -29,7 +29,7 @@
 #         print("Hej då!")
 #         break
 # print("--------------------------------------------------------")
-print("------------------------------DICTIONARY---------------------")
+print("\n----------------AM THE OPERATOR WITH MY POCKET CALCULATOR-------------------\n")
 
 import operator
 ops = { "+": operator.add, "*": operator.mul, "**": operator.pow}
@@ -48,10 +48,11 @@ while True:
     num1 = int(input("Välj en siffra att räkna med: "))
     num2 = int(input("Välj en andra siffra att räkna med: "))
     print("\n Svaret på {} {} {} = {}\n".format(num1, val, num2, ops[val](num1,num2)))
+
     """
-    ops blir värdet på nyckeln jag valt -> ops[val]
+    min dict ops blir värdet på nyckeln jag valt -> ops[val]
     Då kan jag ge funktionen jag stoppat in som värde två argument som funktionen tar (num1,num2)
     """
 
-print("-------------------------------DICTIONARY-------------------------")
+print("---------------------------------------------------------------------------------")
 
