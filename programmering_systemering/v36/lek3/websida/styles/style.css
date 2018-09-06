@@ -1,0 +1,27 @@
+body {
+	background: black;
+}
+table {
+	margin: 0 auto;
+	}
+
+.container {
+	width: 800px;
+	height: 900px;
+	margin: 0 auto;
+	background-color: green;
+	}
+
+.ruta1 {
+	width: 200px;
+	height: 400px;
+	margin: 0 auto;
+	background-color: pink;
+}
+
+.ruta2 {
+	width: 200px;
+	height: 400px;
+	margin: 0 auto;
+	background-color: maroon;
+}
