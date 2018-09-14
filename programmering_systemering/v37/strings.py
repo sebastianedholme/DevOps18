@@ -52,4 +52,7 @@ print(mega_list2)
 
 print("Create multiple lists in list")
 mega_list3 = [[i for i in range(10)],[i for i in range(20)]]
-print(mega_list3)
+print(mega_list3[1][2])
+
+list1 = ["a", "b", "c",["d", "e", "f"]]
+print(list1[3][2])
