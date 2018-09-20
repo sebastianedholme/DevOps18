@@ -1,0 +1,6 @@
+* OOP (Objekt orienterad programmering) PYTHON
+
+#+BEGIN_SRC python
+class Person: 
+
+#+END_SRC
