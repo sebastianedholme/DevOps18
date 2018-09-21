@@ -1,6 +1,7 @@
 # Fördelen med properties är att du har ett sett hämta och sätta attribut oavsett om variablen
 # är private eller public.
 # Du kan köra kontrollers i ditt attribut för att kolla om värdet är ok.
+import random
 
 class Person:
     """ This is my person class. Can I do this better?"""
@@ -33,11 +34,14 @@ class Person:
     def name(self, name):
         self.__name = name
 
+class Account(Person):
+    __account_id = random.randint(0, 101)
+    #def __init__(self, name, age):
+        #super().__init__(name, age)
 
+    @property
+    def account_id(self):
+        return self.__account_id
 
-p1 = Person('Sebastian', 32)
-print(p1.formats)
-p1.name =  'John'
-print(p1.formats)
-p1.age = 155
-print(p1.age)
+p1 = Account('Sebbe', 22)
+print(p1.account_id)
