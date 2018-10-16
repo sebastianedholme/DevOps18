@@ -153,6 +153,9 @@ class MySQLConnector:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Makes it so that every time i exit out from a with it closes the db connection
+        """
         self.connection.close()
 
     @property
@@ -162,17 +165,6 @@ class MySQLConnector:
     @property
     def cursor(self):
         return self._cursor
-
-    def login_user(self, username, password):
-        with self.connection.cursor() as c:
-            c.execute('SELECT * from myapp')
-            c.fetchall()
-
-    def close_connection(self):
-        try:
-            self.connection.close()
-        except Exception as e:
-            print('Got error {!r}, errno is {}'.format(e, e.args[0]))
 
 
 def main():
