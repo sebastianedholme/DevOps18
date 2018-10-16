@@ -3,7 +3,7 @@ import socket
 port = 53883
 
 with socket.socket() as s:
-    s.bind(('127.0.0.1', port))
+    s.bind(('', port))
     print(f"Socket is binded to port: {port}")
     while True:
         s.listen(5)

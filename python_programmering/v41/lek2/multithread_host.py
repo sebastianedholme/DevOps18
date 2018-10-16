@@ -15,12 +15,16 @@ class ThreadedServer():
         self.port = port
         self.s = socket.socket()
         self.s.bind((self.host, self.port))
+        print(f'Socket binded to port:{port}')
 
     def listen(self):
         self.s.listen(5)
+        print("listening...")
+
+        client, address = self.s.accept() # Accept sock client connection
+        print(f'Client connected: {address}')
+
         while True:
-            client, address = self.s.accept() # Accept sock client connection
-            #client.settimeout(60) # Timeout to 60 sec
             threading.Thread(target=self.listen_to_client, args=(client, address))
 
     def listen_to_client(self, client, address):
@@ -29,13 +33,9 @@ class ThreadedServer():
         """
         size = 1024
         while True:
-            try:
-                data = client.recv(size)
-                response = data.decode('utf8')
-                client.send(response)
-            except:
-                client.close()
-                return False
+            data = client.recv(size)
+            response = data.decode('utf8')
+            client.send(response)
 
 if __name__ == "__main__":
     while True:
