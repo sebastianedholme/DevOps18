@@ -12,12 +12,13 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.topmenu = TopMenu(self)
         self.toolbar = ToolBar(self)
         self.statusbar = StatusBar(self)
-        #self.db_settings_window = DbSettingsWindow(self)
 
         # Packing up
         self.topmenu.pack(side="top", fill="x")
         self.toolbar.pack(side="top", fill="x")
         self.statusbar.pack(side="bottom", fill="x")
+
+        self.db_settings_window = DbSettingsWindow(self)
 
 
 class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
@@ -106,25 +107,27 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
     def __init__(self, master=None):
         super().__init__(master)
 
-        self.window = tk.Toplevel()
+        #self.window = tk.Toplevel()
 
         # Labels
-        self.label_host = tk.Label(self.window, text="Host")
-        self.label_user = tk.Label(self.window, text="User")
-        self.label_passwd = tk.Label(self.window, text="Password")
-        self.label_db = tk.Label(self.window, text="Databse")
+        self.label_host = tk.Label(self, text="Host")
+        self.label_user = tk.Label(self, text="User")
+        self.label_passwd = tk.Label(self, text="Password")
+        self.label_db = tk.Label(self, text="Databse")
 
         # Entries
-        self.entry_host = tk.Entry(self.window)
-        self.entry_user = tk.Entry(self.window)
-        self.entry_passwd = tk.Entry(self.window, show="*")
-        self.entry_db = tk.Entry(self.window)
+        self.entry_host = tk.Entry(self)
+        self.entry_user = tk.Entry(self)
+        self.entry_passwd = tk.Entry(self, show="*")
+        self.entry_db = tk.Entry(self)
 
         # Buttons
-        self.connect_btn = tk.Button(self.window, text=("Connect"),
+        self.connect_btn = tk.Button(self, text=("Test connection"),
                                      command=self.test_connection)
-        self.close_btn = tk.Button(self.window, text="Close",
+        self.close_btn = tk.Button(self, text="Close",
                                    command=self.close_window)
+        self.save_btn = tk.Button(self, text="Save",
+                                  command=self.save_settings)
 
         # Grid
         self.label_host.grid(row=1, column=0)
@@ -137,31 +140,65 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
         self.entry_db.grid(row=4, column=1)
 
         self.connect_btn.grid(row=6, column=0, columnspan=1, sticky=tk.W)
-        self.close_btn.grid(row=6, column=1, columnspan=1, sticky=tk.W)
+        self.save_btn.grid(row=6, column=1, columnspan=4, sticky=tk.W)
+        self.close_btn.grid(row=6, column=2, columnspan=1, sticky=tk.W)
 
-        #self.pack()
+        self.pack()
+
+    def save_settings(self):
+        try:
+            MySQLConnector.HOST = self.entry_host.get()
+            MySQLConnector.USER = self.entry_user.get()
+            MySQLConnector.PASSWD = self.entry_passwd.get()
+            MySQLConnector.DB = self.entry_db.get()
+            self.master.statusbar.status_text.set("Saved!")
+
+            self.entry_host.config(bg="green")
+            self.entry_user.config(bg="green")
+            self.entry_passwd.config(bg="green")
+            self.entry_db.config(bg="green")
+
+        except:
+            print("Something wen't wrong")
 
     def test_connection(self):
-        self.master.statusbar.status_text.set('Trying to connect')
+
+        try:
+            with MySQLConnector() as con:
+                if con:
+                    self.master.statusbar.status_text.set('Connection OK!')
+                else:
+                    self.master.statusbar.status_text.set('Connection failed')
+        except pymysql.err.OperationalError as e:
+            self.master.statusbar.status_text.set(e)
 
     def close_window(self):
-        self.window.destroy()
+        self.destroy()
 
-class MySQLConnector:
+class MySQLConnector(object):
     """
     My databse connector
     """
+    HOST = None
+    USER = None
+    PASSWD = None
+    DB = None
 
     def __init__(self, *args):
-        self._connection = pymysql.connect(host=args[0],
-                                           user=args[1],
-                                           passwd=args[2],
-                                           db=args[3],
+        self._connection = pymysql.connect(host=self.HOST,
+                                           user=self.USER,
+                                           passwd=self.PASSWD,
+                                           db=self.DB,
                                            cursorclass=pymysql.cursors.DictCursor)
 
         self._cursor = self._connection.cursor ()
 
     def __enter__(self):
+        """
+        This makes it possible to use a with statement with the SQL connectio
+        without having to create the object first. The exit will make sure
+        the connection is closed.
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
