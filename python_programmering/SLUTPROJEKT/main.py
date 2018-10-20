@@ -12,11 +12,13 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.topmenu = TopMenu(self)
         self.toolbar = ToolBar(self)
         self.statusbar = StatusBar(self)
+        #self.db_settings_window = DbSettingsWindow(self)
 
         # Packing up
         self.topmenu.pack(side="top", fill="x")
         self.toolbar.pack(side="top", fill="x")
         self.statusbar.pack(side="bottom", fill="x")
+
 
 class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
     """
@@ -62,11 +64,9 @@ class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
             b.configure(image=b.image)
             b.pack(side="left")
 
+
     def bookmarks(self):
-        # eftersom att jag öppnar db fönstret här så så måste jag referea
-        # tillbaka till self.master.
-        open_db_settings = DbSettingsWindow(self.master)
-        open_db_settings.pack(side="left")
+        pass
 
     def home(self):
         print("home")
@@ -90,6 +90,14 @@ class StatusBar(tk.Frame): # pylint: disable=too-many-ancestors
                               textvariable=self.status_text)
         self.status_text.set("Status bar")
         self.label.pack(fill=tk.X)
+
+        def set(self, format, *args):
+            self.label.config(text=format % args)
+            self.label.update_idletask()
+
+        def clear(self):
+            self.label.config(text="")
+            self.label.update_idletask()
 
 class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many-instance-attributes
     """
@@ -118,18 +126,19 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
         self.close_btn = tk.Button(self.window, text="Close",
                                    command=self.close_window)
 
-        # Packing
-        self.label_host.pack(fill="x")
-        self.entry_host.pack(fill="x")
-        self.label_user.pack(fill="x")
-        self.entry_user.pack(fill="x")
-        self.label_passwd.pack(fill="x")
-        self.entry_passwd.pack(fill="x")
-        self.label_db.pack(fill="x")
-        self.entry_db.pack(fill="x")
+        # Grid
+        self.label_host.grid(row=1, column=0)
+        self.entry_host.grid(row=1, column=1)
+        self.label_user.grid(row=2, column=0)
+        self.entry_user.grid(row=2, column=1)
+        self.label_passwd.grid(row=3, column=0)
+        self.entry_passwd.grid(row=3, column=1)
+        self.label_db.grid(row=4, column=0)
+        self.entry_db.grid(row=4, column=1)
 
-        self.connect_btn.pack(side="left")
-        self.close_btn.pack(side="right")
+        self.connect_btn.grid(row=6, column=0, columnspan=1, sticky=tk.W)
+        self.close_btn.grid(row=6, column=1, columnspan=1, sticky=tk.W)
+
         #self.pack()
 
     def test_connection(self):
