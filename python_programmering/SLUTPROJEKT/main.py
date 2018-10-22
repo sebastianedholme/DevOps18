@@ -59,6 +59,7 @@ class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
 
         buttons_list = [] # Lista som innehåller alla knapp objekt
         for btn_name, function in self.buttons_dictionary.items():
+
             buttons_list.append(tk.Button(self, command=function))
             b = buttons_list[-1] # Referera till den senast tillagda knappen i listan
             b.image = tk.PhotoImage(file=files_path+btn_name+'.png')
@@ -162,7 +163,6 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
             print("Something wen't wrong")
 
     def test_connection(self):
-
         try:
             with MySQLConnector() as con:
                 if con:
