@@ -1,5 +1,7 @@
 import socket
 
+messages = [b'Message 1 from client', b'Message 2 from client']
+
 with socket.socket() as s:
     while True:
         try:
@@ -10,15 +12,13 @@ with socket.socket() as s:
             break
         print("Must be between 0 & 65535")
 
-    s.connect(('localhost', port))
+    ip = input("Vilken IP vill du ansluta till? > ")
+    s.connect((ip, port))
 
     while True:
         # Skicka medelande
         msg = input("Client > ")
         if msg == ':q':
             break
-        s.send(b"{msg}".decode('utf8'))
-
-        data = s.recv(1024)
-        print(data.decode('utf8'))
+        s.send(bytes(msg, 'utf8')) # Skicka byte data
 print("Hej då!")

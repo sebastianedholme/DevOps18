@@ -1,10 +1,14 @@
 import tkinter as tk
 import pymysql
 
+
+
 class Application(tk.Frame): # pylint: disable=too-many-ancestors
     """
     This is the main application entry class
     """
+
+
     def __init__(self, master=None):
         super().__init__(master)
 
@@ -14,11 +18,9 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.statusbar = StatusBar(self)
 
         # Packing up
-        self.topmenu.pack(side="top", fill="x")
-        self.toolbar.pack(side="top", fill="x")
-        self.statusbar.pack(side="bottom", fill="x")
-
-        self.db_settings_window = DbSettingsWindow(self)
+        self.topmenu.pack(side="top", fill=tk.X)
+        self.toolbar.pack(side="top", fill=tk.X)
+        self.statusbar.pack(side="bottom", fill=tk.X)
 
 
 class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
@@ -36,8 +38,12 @@ class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
 
         self.menu.add_cascade(label="File", menu=self.file_menu)
 
+        self.file_menu.add_command(label="Settings", command=self.settings_window)
         self.file_menu.add_command(label="Login..")
         self.file_menu.add_separator()
+
+    def settings_window(self):
+        self.window = DbSettingsWindow(self.master)
 
 class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
     """
@@ -59,7 +65,6 @@ class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
 
         buttons_list = [] # Lista som innehåller alla knapp objekt
         for btn_name, function in self.buttons_dictionary.items():
-
             buttons_list.append(tk.Button(self, command=function))
             b = buttons_list[-1] # Referera till den senast tillagda knappen i listan
             b.image = tk.PhotoImage(file=files_path+btn_name+'.png')
@@ -68,16 +73,16 @@ class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
 
 
     def bookmarks(self):
-        pass
+        self.master.statusbar.status_text.set("Bookmarks!")
 
     def home(self):
-        print("home")
+        self.master.statusbar.status_text.set("Home")
 
     def trash(self):
-        print("trash")
+        self.master.statusbar.status_text.set("Traash")
 
     def pref(self):
-        print("pref")
+        self.master.statusbar.status_text.set("Settings")
 
 class StatusBar(tk.Frame): # pylint: disable=too-many-ancestors
     """
@@ -108,26 +113,36 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
     def __init__(self, master=None):
         super().__init__(master)
 
-        #self.window = tk.Toplevel()
+        self.window = tk.Toplevel()
+
+        self.db_host = tk.StringVar()
+        self.db_user = tk.StringVar()
+        self.db_passwd = tk.StringVar()
+        self.db_db = tk.StringVar()
+
+        self.db_host.set(str(MySQLConnector.HOST))
+        self.db_user.set(str(MySQLConnector.USER))
+        self.db_passwd.set(str(MySQLConnector.PASSWD))
+        self.db_db.set(str(MySQLConnector.DB))
 
         # Labels
-        self.label_host = tk.Label(self, text="Host")
-        self.label_user = tk.Label(self, text="User")
-        self.label_passwd = tk.Label(self, text="Password")
-        self.label_db = tk.Label(self, text="Databse")
+        self.label_host = tk.Label(self.window, text="Host")
+        self.label_user = tk.Label(self.window, text="User")
+        self.label_passwd = tk.Label(self.window, text="Password")
+        self.label_db = tk.Label(self.window, text="Databse")
 
         # Entries
-        self.entry_host = tk.Entry(self)
-        self.entry_user = tk.Entry(self)
-        self.entry_passwd = tk.Entry(self, show="*")
-        self.entry_db = tk.Entry(self)
+        self.entry_host = tk.Entry(self.window, textvariable=self.db_host)
+        self.entry_user = tk.Entry(self.window, textvariable=self.db_user)
+        self.entry_passwd = tk.Entry(self.window, show="*", textvariable=self.db_passwd)
+        self.entry_db = tk.Entry(self.window, textvariable=self.db_db)
 
         # Buttons
-        self.connect_btn = tk.Button(self, text=("Test connection"),
+        self.connect_btn = tk.Button(self.window, text=("Test connection"),
                                      command=self.test_connection)
-        self.close_btn = tk.Button(self, text="Close",
+        self.close_btn = tk.Button(self.window, text="Close",
                                    command=self.close_window)
-        self.save_btn = tk.Button(self, text="Save",
+        self.save_btn = tk.Button(self.window, text="Save",
                                   command=self.save_settings)
 
         # Grid
@@ -152,6 +167,7 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
             MySQLConnector.USER = self.entry_user.get()
             MySQLConnector.PASSWD = self.entry_passwd.get()
             MySQLConnector.DB = self.entry_db.get()
+
             self.master.statusbar.status_text.set("Saved!")
 
             self.entry_host.config(bg="green")
@@ -222,6 +238,7 @@ class MySQLConnector(object):
     @db_info.setter
     def db_info(self, *arg):
         self.db_info = [*arg]
+
 if __name__ == "__main__":
     root = tk.Tk()
     Application(master=root).pack(side="top", fill="both", expand=True)

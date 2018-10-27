@@ -5,22 +5,16 @@ port = 53883
 with socket.socket() as s:
     s.bind(('', port))
     print(f"Socket is binded to port: {port}")
+    s.listen(5)
+    print("Listening...")
+
+    c, addr = s.accept() # Client anslutningen
+    print(addr)
     while True:
-        s.listen(5)
-        print("Listening...")
-
-        c, addr = s.accept() # Client anslutningen
-        print(addr)
-        while True:
-            # Ta emot
-            msg = c.recv(1024)
-            if not msg:
-                break
-            print(f"Server<< {msg.decode('utf8')}")
-
-        print("The connection from the client was closed")
-        command = input("Would you like to quit? Y/N")
-        if command.lower == 'y':
+        # Ta emot
+        msg = c.recv(1024)
+        if not msg:
             break
+        print(f"Server<< {msg.decode('utf8')}")
 
 print("Hej då!")
