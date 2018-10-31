@@ -7,8 +7,6 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
     """
     This is the main application entry class
     """
-
-
     def __init__(self, master=None):
         super().__init__(master)
 
@@ -16,11 +14,62 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.topmenu = TopMenu(self)
         self.toolbar = ToolBar(self)
         self.statusbar = StatusBar(self)
+        self.mainframe = MainFrame(self)
 
         # Packing up
         self.topmenu.pack(side="top", fill=tk.X)
         self.toolbar.pack(side="top", fill=tk.X)
+        self.mainframe.pack(side="top", fill=tk.Y)
         self.statusbar.pack(side="bottom", fill=tk.X)
+
+class MainFrame(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+
+        self.add_record = tk.Button(self, text="Add Record", command=self.record_window)
+
+        self.add_record.grid(column=0, row=1)
+
+
+    def record_window(self):
+        window = AddRecordFrame(self)
+
+class AddRecordFrame(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+
+        self.window = tk.Toplevel()
+
+        # Labels
+        self.artist_label = tk.Label(self.window, text="Artist Name")
+        self.label_label = tk.Label(self.window, text="Label Name")
+        self.catno_label = tk.Label(self.window, text="Cat Num")
+        self.rel_name_label = tk.Label(self.window, text="Release Name")
+        # Entries
+        self.artist_entry = tk.Entry(self.window)
+        self.label_entry = tk.Entry(self.window)
+        self.catno_entry = tk.Entry(self.window)
+        self.rel_name_entry = tk.Entry(self.window)
+        # Buttons
+        self.save_btn = tk.Button(self.window, text="Save to Databse", command=self.save_to_db)
+        self.close_btn = tk.Button(self.window, text="Close", command=self.window.destroy)
+
+        # Grid Labels
+        self.artist_label.grid(column=0, row=0)
+        self.label_label.grid(column=0, row=1)
+        self.catno_label.grid(column=0, row=2)
+        self.rel_name_label.grid(column=0, row=3)
+        # Grid Entries
+        self.artist_entry.grid(column=1, row=0)
+        self.label_entry.grid(column=1, row=1)
+        self.catno_entry.grid(column=1, row=2)
+        self.rel_name_entry.grid(column=1, row=3)
+        # Grid Buttons
+        self.save_btn.grid(column=0, row=4)
+        self.close_btn.grid(column=1, row=4, columnspan=2)
+
+    def save_to_db(self):
+        pass
 
 
 class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
@@ -141,7 +190,7 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
         self.connect_btn = tk.Button(self.window, text=("Test connection"),
                                      command=self.test_connection)
         self.close_btn = tk.Button(self.window, text="Close",
-                                   command=self.close_window)
+                                   command=self.window.destroy)
         self.save_btn = tk.Button(self.window, text="Save",
                                   command=self.save_settings)
 
@@ -188,8 +237,6 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
         except pymysql.err.OperationalError as e:
             self.master.statusbar.status_text.set(e)
 
-    def close_window(self):
-        self.destroy()
 
 class MySQLConnector(object):
     """
