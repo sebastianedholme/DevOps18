@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import pymysql
 
 
@@ -15,26 +16,62 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.toolbar = ToolBar(self)
         self.statusbar = StatusBar(self)
         self.mainframe = MainFrame(self)
+        self.intro_label = tk.Label(self, text=""" Welcome to this simple GUI app.
+        To get information from yuor databse, first go to settings and save your DB information.
+        You can then fill the treeview with data from your Databse""", anchor='w', justify="left", wraplength=200)
 
         # Packing up
         self.topmenu.pack(side="top", fill=tk.X)
         self.toolbar.pack(side="top", fill=tk.X)
-        self.mainframe.pack(side="top", fill=tk.Y)
+        self.intro_label.pack()
+        self.mainframe.pack(fill=tk.BOTH)
         self.statusbar.pack(side="bottom", fill=tk.X)
 
-class MainFrame(tk.Frame):
+
+class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
+    """
+    The containg listbox and buttons to add things from DB
+    """
     def __init__(self, master=None):
         super().__init__(master)
 
+        # Btns
         self.add_record = tk.Button(self, text="Add Record", command=self.record_window)
+        self.update_btn = tk.Button(self, text="Get DB info", command=self.update_db)
 
-        self.add_record.grid(column=0, row=1)
+        # BTNS grid
+        self.add_record.grid(column=0, row=0, sticky=tk.W)
+        self.update_btn.grid(column=0, row=0, sticky=tk.E)
 
+        #TTK Tree
+        self.tree = ttk.Treeview(self)
+        self.tree['show'] = 'headings'
+        self.tree['columns'] = ('id', 'cat no', 'label', 'artist')
+        self.tree.heading('id', text='id', anchor=tk.W)
+        self.tree.heading('cat no', text='Cat No', anchor=tk.W)
+        self.tree.heading('label', text='Label', anchor=tk.W)
+        self.tree.heading('artist', text='Artist', anchor=tk.W)
+        self.tree.column('cat no', width=100)
+        self.tree.column('label', width=100)
+        self.tree.column('artist', width=100)
+        self.tree.column('id', width=30)
+        self.tree.bind('<<TreeviewSelect>>', self.on_selected)
+        self.tree.grid(row=1, column=0, sticky='ns')
+
+
+    def on_selected(self):
+        pass
+
+    def update_db(self):
+        pass
 
     def record_window(self):
         window = AddRecordFrame(self)
 
-class AddRecordFrame(tk.Frame):
+class AddRecordFrame(tk.Frame): # pylint: disable=too-many-ancestors, too-many-instance-attributes
+    """
+    In this window you can add a record to the database
+    """
     def __init__(self, master=None):
         super().__init__(master)
 
