@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 import pymysql
 
-
-
 class Application(tk.Frame): # pylint: disable=too-many-ancestors
     """
     This is the main application entry class
@@ -18,7 +16,8 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.mainframe = MainFrame(self)
         self.intro_label = tk.Label(self, text=""" Welcome to this simple GUI app.
         To get information from yuor databse, first go to settings and save your DB information.
-        You can then fill the treeview with data from your Databse""", anchor='w', justify="left", wraplength=200)
+        You can then fill the treeview with data from your Databse""",
+                                    anchor='w', justify="left", wraplength=200)
 
         # Packing up
         self.topmenu.pack(side="top", fill=tk.X)
@@ -36,16 +35,19 @@ class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
         super().__init__(master)
 
         # Btns
-        self.add_record = tk.Button(self, text="Add Record", command=self.record_window)
-        self.update_btn = tk.Button(self, text="Get DB info", command=self.update_db)
+        self.add_btn = tk.Button(self, text="Add Record", command=self.record_window)
+        self.remove_btn = tk.Button(self, text="Remove Item", command=self.remove_item)
+        self.update_btn = tk.Button(self, text="Update list", command=self.update_db)
 
         # BTNS grid
-        self.add_record.grid(column=0, row=0, sticky=tk.W)
+        self.add_btn.grid(column=0, row=0, sticky=tk.W)
         self.update_btn.grid(column=0, row=0, sticky=tk.E)
+        self.remove_btn.grid(column=0, row=2, sticky='we')
 
         #TTK Tree
         self.tree = ttk.Treeview(self)
         self.tree['show'] = 'headings'
+        self.tree['columns'] = ('cat no', 'label', 'artist')
         self.tree['columns'] = ('id', 'cat no', 'label', 'artist')
         self.tree.heading('id', text='id', anchor=tk.W)
         self.tree.heading('cat no', text='Cat No', anchor=tk.W)
@@ -55,15 +57,49 @@ class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
         self.tree.column('label', width=100)
         self.tree.column('artist', width=100)
         self.tree.column('id', width=30)
-        self.tree.bind('<<TreeviewSelect>>', self.on_selected)
+        #self.tree.bind('<<TreeviewSelect>>', self.on_selected)
         self.tree.grid(row=1, column=0, sticky='ns')
 
+    def remove_item(self):
+        """
+        item_id becomes the id of the item selected in the treeview
+        tree.focus returns the item ID of the selected item in the tree.
+        tree.item returns a dict with value being a list of all the columns.
+        [0] is the ID column in the tree
+        """
+        item_id = self.tree.item(self.tree.focus())['values'][0]
 
-    def on_selected(self):
+
+        with MySQLConnector() as con:
+            if con:
+                con.cursor.execute(f"""SELECT {item_id} FROM record""")
+                for i in con.cursor:
+                    print(i)
+        #try:
+            #self.tree.delete(item_id)
+            #print(type(item_id))
+        #except tk.TclError as e:
+            #self.master.statusbar.status_text.set('Need to select an item')
+
+    def on_selected(self, obj):
         pass
 
     def update_db(self):
-        pass
+        """
+        Dependent on correctly setup DB in settings menu
+        """
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+
+        with MySQLConnector() as con:
+            id_count = 0 # the ID
+            if con:
+                con.cursor.execute("""SELECT * FROM record""")
+                for row in con.cursor:
+                    self.tree.insert('', 'end', text=str(id_count), values=(row['id'], row['cat_no'], row['label'], row['artist']))
+                    id_count += 1
+            else:
+                self.master.statusbar.status_text.set('Connection failed')
 
     def record_window(self):
         window = AddRecordFrame(self)
@@ -275,16 +311,17 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
             self.master.statusbar.status_text.set(e)
 
 
-class MySQLConnector(object):
+class MySQLConnector():
     """
     My databse connector
+    Use the save settings in DB from GUI to have DB to connect to
     """
-    HOST = None
-    USER = None
-    PASSWD = None
-    DB = None
+    HOST = 'localhost'
+    USER = 'recordbox'
+    PASSWD = 'recordbox'
+    DB = 'recordbox'
 
-    def __init__(self, *args):
+    def __init__(self):
         self._connection = pymysql.connect(host=self.HOST,
                                            user=self.USER,
                                            passwd=self.PASSWD,
