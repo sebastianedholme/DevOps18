@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 import pymysql
+from PIL import Image, ImageTk
 
 class Application(tk.Frame): # pylint: disable=too-many-ancestors
     """
     This is the main application entry class
+    Aso the structure of the application. I pack up all the windows that i use
     """
     def __init__(self, master=None):
         super().__init__(master)
@@ -18,7 +20,6 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         To get information from yuor databse, first go to settings and save your DB information.
         You can then fill the treeview with data from your Databse""",
                                     anchor='w', justify="left", wraplength=200)
-
         # Packing up
         self.topmenu.pack(side="top", fill=tk.X)
         self.toolbar.pack(side="top", fill=tk.X)
@@ -26,18 +27,18 @@ class Application(tk.Frame): # pylint: disable=too-many-ancestors
         self.mainframe.pack(fill=tk.BOTH)
         self.statusbar.pack(side="bottom", fill=tk.X)
 
-
 class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
     """
     The containg listbox and buttons to add things from DB
+    This is seperate from toolbar, statusbar and topmenu
     """
     def __init__(self, master=None):
         super().__init__(master)
 
         # Btns
-        self.add_btn = tk.Button(self, text="Add Record", command=self.record_window)
+        self.add_btn = tk.Button(self, text="Add Record", command=self.add_record_window)
         self.remove_btn = tk.Button(self, text="Remove Item", command=self.remove_item)
-        self.update_btn = tk.Button(self, text="Update list", command=self.update_db)
+        self.update_btn = tk.Button(self, text="Update list", command=self.update_tree)
 
         # BTNS grid
         self.add_btn.grid(column=0, row=0, sticky=tk.W)
@@ -48,7 +49,7 @@ class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
         self.tree = ttk.Treeview(self)
         self.tree['show'] = 'headings'
         self.tree['columns'] = ('cat no', 'label', 'artist')
-        self.tree['columns'] = ('id', 'cat no', 'label', 'artist')
+        self.tree['columns'] = ('id', 'cat no', 'label', 'artist', 'img_path')
         self.tree.heading('id', text='id', anchor=tk.W)
         self.tree.heading('cat no', text='Cat No', anchor=tk.W)
         self.tree.heading('label', text='Label', anchor=tk.W)
@@ -57,8 +58,32 @@ class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
         self.tree.column('label', width=100)
         self.tree.column('artist', width=100)
         self.tree.column('id', width=30)
-        #self.tree.bind('<<TreeviewSelect>>', self.on_selected)
+        self.tree.bind('<<TreeviewSelect>>', self.on_selected) # How to run?
         self.tree.grid(row=1, column=0, sticky='ns')
+
+        self.show_image('images/vinyl.png')
+
+        # Image
+    def show_image(self, image_path):
+        """
+        Displays an image with a file path
+        """
+        load = Image.open(image_path)
+        load = load.resize((128, 128), Image.ANTIALIAS)
+        render = ImageTk.PhotoImage(load)
+
+        img = tk.Label(self, image=render)
+        img.image = render
+
+        img.grid(row=3, column=0)
+
+    def on_selected(self, event):
+        """
+        Changes image to show and runs the show image function
+        """
+        file_path = self.tree.item(self.tree.focus())['values'][4]
+
+        self.show_image(file_path)
 
     def remove_item(self):
         """
@@ -67,42 +92,54 @@ class MainFrame(tk.Frame): # pylint: disable=too-many-ancestors
         tree.item returns a dict with value being a list of all the columns.
         [0] is the ID column in the tree
         """
-        item_id = self.tree.item(self.tree.focus())['values'][0]
 
+        sql = ('DELETE FROM record WHERE id = %s')
+        try:
+            item_id = self.tree.item(self.tree.focus())['values'][0]
+            with MySQLConnector() as con:
+                if con:
+                    #con.cursor.execute(f"""DELETE FROM record WHERE id = {item_id} """)
+                    con.cursor.execute(sql, item_id)
+                    con.connection.commit()
+        except:
+            self.master.statusbar.status_text.set(f'Need something selected')
 
-        with MySQLConnector() as con:
-            if con:
-                con.cursor.execute(f"""SELECT {item_id} FROM record""")
-                for i in con.cursor:
-                    print(i)
-        #try:
-            #self.tree.delete(item_id)
-            #print(type(item_id))
-        #except tk.TclError as e:
-            #self.master.statusbar.status_text.set('Need to select an item')
+        # Updates the mainframe window
+        self.update_tree()
 
-    def on_selected(self, obj):
-        pass
-
-    def update_db(self):
+    def update_tree(self):
         """
         Dependent on correctly setup DB in settings menu
+        This CLEARS the tree first and then updates it with the
+        information that exists in the database
         """
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-
-        with MySQLConnector() as con:
-            id_count = 0 # the ID
+        self.clear_tree() # Simply clears the tree
+        with MySQLConnector() as con: # Get the data from DB
+            id_count = 0 # num of items from the db.
             if con:
-                con.cursor.execute("""SELECT * FROM record""")
-                for row in con.cursor:
-                    self.tree.insert('', 'end', text=str(id_count), values=(row['id'], row['cat_no'], row['label'], row['artist']))
+                con.cursor.execute("""SELECT * FROM record""") # SELECT ALL
+                for row in con.cursor: # Then inserts into tree
+                    self.tree.insert('', 'end', text=str(id_count),
+                                     values=(
+                                         row['id'], row['cat_no'],
+                                         row['label'], row['artist'],
+                                         row['img_path']))
                     id_count += 1
             else:
                 self.master.statusbar.status_text.set('Connection failed')
 
-    def record_window(self):
-        window = AddRecordFrame(self)
+    def add_record_window(self):
+        """
+        Opens a new window to add a new record to the databse
+        """
+        window = AddRecordFrame(self.master)
+
+    def clear_tree(self):
+        """
+        This functions simply clears the tree, DOES NOT EDIT THE DB
+        """
+        for i in self.tree.get_children():
+            self.tree.delete(i)
 
 class AddRecordFrame(tk.Frame): # pylint: disable=too-many-ancestors, too-many-instance-attributes
     """
@@ -118,32 +155,67 @@ class AddRecordFrame(tk.Frame): # pylint: disable=too-many-ancestors, too-many-i
         self.label_label = tk.Label(self.window, text="Label Name")
         self.catno_label = tk.Label(self.window, text="Cat Num")
         self.rel_name_label = tk.Label(self.window, text="Release Name")
+        self.imgpath_label = tk.Label(self.window, text="Image Path")
         # Entries
         self.artist_entry = tk.Entry(self.window)
         self.label_entry = tk.Entry(self.window)
         self.catno_entry = tk.Entry(self.window)
-        self.rel_name_entry = tk.Entry(self.window)
+        self.imgpath_entry = tk.Entry(self.window)
         # Buttons
         self.save_btn = tk.Button(self.window, text="Save to Databse", command=self.save_to_db)
         self.close_btn = tk.Button(self.window, text="Close", command=self.window.destroy)
 
+        # Test browse
+        self.browser_btn = tk.Button(self.window, text="Browse img", command=self.open_browser)
+
+        ############# GRIDS #######################################
         # Grid Labels
         self.artist_label.grid(column=0, row=0)
         self.label_label.grid(column=0, row=1)
         self.catno_label.grid(column=0, row=2)
-        self.rel_name_label.grid(column=0, row=3)
+        self.imgpath_label.grid(column=0, row=3)
         # Grid Entries
         self.artist_entry.grid(column=1, row=0)
         self.label_entry.grid(column=1, row=1)
         self.catno_entry.grid(column=1, row=2)
-        self.rel_name_entry.grid(column=1, row=3)
+        self.imgpath_entry.grid(column=1, row=3)
         # Grid Buttons
         self.save_btn.grid(column=0, row=4)
         self.close_btn.grid(column=1, row=4, columnspan=2)
+        self.browser_btn.grid(column=2, row=3)
+
+    def open_browser(self):
+        """
+        Opens a browser and returns the selected file's path
+        """
+        from tkinter import filedialog # Using built in filedialog
+
+        file_path = filedialog.askopenfilename()
+        self.imgpath_entry.insert(0, file_path)
 
     def save_to_db(self):
-        pass
+        """
+        INSERT INTO `record` (`cat_no`, `label`, `artist`, `img_path`)
+        VALUES ('EE0004', 'Emotions Electric', 'VA Sounds From The Emotional Underground', NULL);
+        """
+        cat_no = self.catno_entry.get()
+        label = self.label_entry.get()
+        artist = self.artist_entry.get()
+        img_path = self.imgpath_entry.get()
 
+        try:
+            with MySQLConnector() as con:
+                if con:
+                    sql = """INSERT INTO `record` (`cat_no`, `label`, `artist`, `img_path`)
+                                VALUES (%s, %s, %s, %s)"""
+
+                    con.cursor.execute(sql, (cat_no, label, artist, img_path))
+                    con.connection.commit()
+                    self.master.mainframe.update_tree()
+                else:
+                    self.master.statusbar.status_text("No connection to the DB")
+        except:
+            self.master.statusbar.status_text("Could not update the tree")
 
 class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
     """
@@ -153,19 +225,17 @@ class TopMenu(tk.Frame): # pylint: disable=too-many-ancestors
         super().__init__(master)
 
         self.menu = tk.Menu(self.master)
-
         root.config(menu=self.menu)
-
         self.file_menu = tk.Menu(self.menu, tearoff=0)
 
         self.menu.add_cascade(label="File", menu=self.file_menu)
 
         self.file_menu.add_command(label="Settings", command=self.settings_window)
-        self.file_menu.add_command(label="Login..")
         self.file_menu.add_separator()
+        self.file_menu.add_command(label="Exit", command=exit)
 
     def settings_window(self):
-        self.window = DbSettingsWindow(self.master)
+        window = DbSettingsWindow(self.master)
 
 class ToolBar(tk.Frame): # pylint: disable=too-many-ancestors
     """
@@ -281,7 +351,7 @@ class DbSettingsWindow(tk.Frame): # pylint: disable=too-many-ancestors, too-many
         self.save_btn.grid(row=6, column=1, columnspan=4, sticky=tk.W)
         self.close_btn.grid(row=6, column=2, columnspan=1, sticky=tk.W)
 
-        self.pack()
+        #self.pack()
 
     def save_settings(self):
         try:
