@@ -162,11 +162,14 @@ class AddRecordFrame(tk.Frame): # pylint: disable=too-many-ancestors, too-many-i
         self.catno_entry = tk.Entry(self.window)
         self.imgpath_entry = tk.Entry(self.window)
         # Buttons
-        self.save_btn = tk.Button(self.window, text="Save to Databse", command=self.save_to_db)
-        self.close_btn = tk.Button(self.window, text="Close", command=self.window.destroy)
+        self.save_btn = tk.Button(self.window, text="Save to Databse",
+                                  command=self.save_to_db)
+        self.close_btn = tk.Button(self.window, text="Close",
+                                   command=self.window.destroy)
 
         # Test browse
-        self.browser_btn = tk.Button(self.window, text="Browse img", command=self.open_browser)
+        self.browser_btn = tk.Button(self.window, text="Browse img",
+                                     command=self.open_browser)
 
         ############# GRIDS #######################################
         # Grid Labels
@@ -398,7 +401,17 @@ class MySQLConnector():
                                            db=self.DB,
                                            cursorclass=pymysql.cursors.DictCursor)
 
-        self._cursor = self._connection.cursor ()
+        self._cursor = self._connection.cursor()
+
+        #query = """SHOW TABLES LIKE `record`"""
+        #self._cursor.execute(query)
+#
+        #result = self._cursor.fetchone()
+#
+        #if result:
+            #self._cursor._clear_result()
+        #else:
+            #self._cursor.execute()
 
     def __enter__(self):
         """
