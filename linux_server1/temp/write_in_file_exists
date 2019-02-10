@@ -1,0 +1,1 @@
+[ -e min_fil ] && echo "not the first line" >> min_fil || echo "first line" > min_fil
