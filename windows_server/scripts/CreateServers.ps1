@@ -10,19 +10,20 @@ $SwitchName = "VMnet"
 
 # This will create a virtual network for the vm Hosts
 Write-Host "Creating a virtual network for the servers"
-New-VMSwitch -name $SwitchName -SwitchType Internal 
+if   (Get-VMSwitch -Name $SwitchName) {Write-Host "Switch already exists, using existing one"}
+else {New-VMSwitch -Name $SwitchName -SwitchType Internal}
 
 # Main loop, create all necessary servers from the server list
 foreach ($Server in $Servers)
 {
-    $ServerPath = "$Path\$server"
+    $ServerPath = "$Path\$Server"
     $ServerVhdPath = "$Path\$Server\$Server.vhdx"
 
     Write-Host "Creating folder structure in C:\VM for $Server"
     mkdir -Force $ServerPath
 
     Write-Host "Making vhdx for $Server"
-    New-VHD -ParentPath $ServerVhdPath -Path $Diffdisk -Differencing
+    New-VHD -ParentPath $Diffdisk -Path $ServerVhdPath -Differencing
 
     Write-Host "Creating new VMs from servers list"
 
