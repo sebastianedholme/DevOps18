@@ -3,14 +3,14 @@ $DC = "DC=gispark,DC=se"
 $UserPassword = "Linux4Ever"
 $MailDomain = "@gispark.se"
 $TitleList = @{
-    Användare = "sanvändare"
-    Chef = "schefer"
-    Ekonom = "sekonomer"
-    Konsult = "skonsulter"
+    Användare     = "sanvändare"
+    Chef          = "schefer"
+    Ekonom        = "sekonomer"
+    Konsult       = "skonsulter"
     Seniorkonsult = "sseniorkonsulter"
-    Säljare = "ssäljare"
-    Vaktis = "sadmins"
-    Ledning = "sledning"
+    Säljare       = "ssäljare"
+    Vaktis        = "sadmins"
+    Ledning       = "sledning"
 }
 
 $Cities = $Users.City | Get-Unique
@@ -21,9 +21,10 @@ Write-Host "Creating user groups"
 foreach ($City in $Cities) {
     foreach ($Group in $TitleList.Values) {
         $GroupName = "$City$Group"
-        if(Get-ADGroup -Filter 'Name -eq $Group') {
+        if (Get-ADGroup -Filter 'Name -eq $Group') {
             Write-Host "Group exists"
-        } else {
+        }
+        else {
             New-ADGroup `
                 -Path "ou=grupper,ou=$City,$DC" `
                 -Name $GroupName `
@@ -38,7 +39,7 @@ foreach ($User in $Users) {
     $DisplayName = $GivenName + " " + $Surname
     $StreetAddress = $User.StreetAddress
     $PostalCode = $User.PostalCode
-    $City = $User.Phone
+    $City = $User.City
     $Title = $User.Title
     $EmpID = $User.EmpID
     $MobilePhone = $User.Phone
@@ -53,32 +54,34 @@ foreach ($User in $Users) {
     }
     else {
         New-ADUser `
-        -Name $DisplayName `
-        -DisplayName $DisplayName `
-        -SamAccountName $Loggon `
-        -GiveName $GivenName `
-        -Surname $Surname `
-        -Title $Title `
-        -MobilePhone $MobilePhone `
-        -EmailAddress $Email `
-        -StreetAddress $StreetAddress `
-        -PostalCode $PostalCode `
-        -City $City `
-        -EmployeeID $EmpID`
+            -Name $DisplayName `
+            -DisplayName $DisplayName `
+            -SamAccountName $Loggon `
+            -GiveName $GivenName `
+            -Surname $Surname `
+            -Title $Title `
+            -MobilePhone $MobilePhone `
+            -EmailAddress $Email `
+            -StreetAddress $StreetAddress `
+            -PostalCode $PostalCode `
+            -City $City `
+            -EmployeeID $EmpID`
         -AccountPassword (ConvertTo-SecureString $UserPassword -AsPlainText -Force) `
-        -Enabled $true `
-        -Path $OUPath `
-        -ChangePasswordAtLogon $false `
-        -PasswordNeverExpires $true `
-        -UserPrincipalName $UPN `
-        -Server dc.gispark.se
+            -Enabled $true `
+            -Path $OUPath `
+            -ChangePasswordAtLogon $false `
+            -PasswordNeverExpires $true `
+            -UserPrincipalName $UPN `
+            -Server dc.gispark.se
     }
 
+    # Need to get AD User object
+    $ADUser = Get-ADuser -Filter "SamAccountName -eq '$Loggon'"
     Write-Host "Adding user to city group"
     $GroupName = $City + "sanvändare"
-    Add-ADGroupMember -Identity $GroupName -Members $User
+    Add-ADGroupMember -Identity $GroupName -Members $ADUser
 
     Write-Host "Adding user after his/her title"
     $TitleGroupName = $City + $TitleList[$Title]
-    Add-ADGroupMember -Identity $TitleGroupName -Members $User
+    Add-ADGroupMember -Identity $TitleGroupName -Members $ADUser
 }

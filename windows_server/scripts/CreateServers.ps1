@@ -2,7 +2,7 @@
 These variables will be used throughout the script. Put more servers in the servers list to create
 VM Hosts for those servers
 #>
-$Servers = "DC", "ServerSthlm", "ServerMalmö"
+$Servers = "DC", "ServerSthlm", "SrvMalmo"
 $Path = "C:\VM"
 $Diffdisk = "$Path\Moderdiskar\ModerdiskW2016.vhdx"
 $MemSize = "2GB"
