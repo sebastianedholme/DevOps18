@@ -5,6 +5,22 @@ $DC = "DC=gispark,DC=se"
 New-ADOrganizationalUnit -Name $Servers -Path $DC
 New-ADOrganizationalUnit -Name $Resursgrupp -Path $DC
 
+$Cities = $Users.City | Get-Unique
+
+foreach ($City in $Cities) {
+    if (Get-ADOrganizationalUnit -Filter "Name -eq $City") {
+        Write-Host "OU for $City already exists"
+    } else {
+        Write-Host "Writing $City OU"
+        New-ADOrganizationalUnit -Name $City -Path $DC
+    }
+
+    foreach ($OU in $CityOUs) {
+        New-ADOrganizationalUnit -Namr $OU -Path "OU=$City,$DC"
+    }
+}
+
+<#
 foreach ($User in $Users) {
     $City = $User.City
     if (Get-ADOrganizationalUNit -Filter "Name -eq $City") {
@@ -20,3 +36,4 @@ foreach ($User in $Users) {
         }
     }
 }
+#>
